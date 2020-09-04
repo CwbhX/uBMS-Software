@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import MainContent from './components/MainContent.jsx';
 import './app.css';
 
 import io from "socket.io-client";
