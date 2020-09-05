@@ -9,6 +9,9 @@
 #define INIT_BAL_C_SLOPE = 1.00;
 #define INIT_BAL_C_INTER = 0.00;
 
+#define PWM_FREQUENCY = 5000;
+#define PWM_RESOLUTION = 12;
+
 #define MOSFET_T_LOC = 12;
 #define BAL_T_LOC = 13;
 #define POWER_T_LOC = 14;
@@ -75,6 +78,7 @@ struct cellData cells[12];            // Array for all the cells and their respe
 struct thermistorData boardTemps[4];  // Array for the temperature sensors on the board
 
 void setupPinouts();
+void setupPWM();
 
 void setMux(enum muxSelect selectedMux, int selectedPin);
 void update7Seg(int number);

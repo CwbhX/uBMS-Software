@@ -22,6 +22,27 @@ void setupPinouts(){
     }
 }
 
+void setupPWM(){
+    int i;
+    
+    ledcSetup(PWM_CHANNEL, PWM_FREQUENCY, PWM_RESOLUTION); // Can use up to 8 hardware timers or 16 channels in total w/ software, but ignoring for now
+    
+    ledcAttachPin(32, PWM_CHANNEL);  // 1
+    ledcAttachPin(33, PWM_CHANNEL);  // 2
+    ledcAttachPin(26, PWM_CHANNEL);  // 3
+    ledcAttachPin(27, PWM_CHANNEL);  // 4
+    ledcAttachPin(14, PWM_CHANNEL);  // 5
+    ledcAttachPin(12, PWM_CHANNEL);  // 6
+    ledcAttachPin(13, PWM_CHANNEL);  // 7
+    ledcAttachPin(15, PWM_CHANNEL);  // 8
+    ledcAttachPin(2,  PWM_CHANNEL);  // 9
+    ledcAttachPin(4,  PWM_CHANNEL);  // 10
+    ledcAttachPin(16, PWM_CHANNEL);  // 11
+    ledcAttachPin(17, PWM_CHANNEL);  // 12
+
+    // Should I init them all to zero duty cycle?
+}
+
 void setMux(enum muxSelect selectedMux, int selectedPin){
     int i;                         // For for loops
     uint8_t binBuff[4];
@@ -133,6 +154,7 @@ void setup() {
   mcp8.begin(1);      // Initialise MCP23008 with address 0x21
   mcp17.begin();      // Initialise MCP23017 with address 0x20
   setupPinouts();     // Setup Pinouts of MCPs, etc...
+  setupPWM();
 }
 
 void loop() {
