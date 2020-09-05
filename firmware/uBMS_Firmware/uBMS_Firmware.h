@@ -9,7 +9,14 @@
 #define INIT_BAL_C_SLOPE = 1.00;
 #define INIT_BAL_C_INTER = 0.00;
 
+#define MOSFET_T_LOC = 12;
+#define BAL_T_LOC = 13;
+#define POWER_T_LOC = 14;
+#define REG_T_LOC = 15;
+
 enum ThermistorLocation{MOSFET, Balance, Regulator, PowerSupply};
+enum muxSelect{voltage, temperature};
+enum ADCSelect{voltage, temperature, current, external};
 
 // Board Configuration Parameters
 struct GlobalCalibrationParams{
@@ -61,10 +68,20 @@ struct thermistorData{
 };
 
 
-int detectedCells;                  // Number of detected cells by the BMS
-bool balancing[12];                 // Boolean array of which cells are currently being balanced (useful for the GUI)
+int detectedCells;                    // Number of detected cells by the BMS
+bool balancing[12];                   // Boolean array of which cells are currently being balanced (useful for the GUI)
 
-struct cellData cells[12];          // Array for all the cells and their respective data
-struct thermistorData boardTemps[4];// Array for the temperature sensors on the board
+struct cellData cells[12];            // Array for all the cells and their respective data
+struct thermistorData boardTemps[4];  // Array for the temperature sensors on the board
+
+
+void setMux(enum muxSelect selectedMux, int selectedPin);
+
+float readADCVoltage(enum ADCSelect selectedChannel);
+float calculateCellVoltage(float voltage, int cellNum);
+float calculateCellTemp(float voltage);
+float calculateBoardTemp(float voltage);
+float calculateDCurrent(float voltage);
+
 
 #endif
