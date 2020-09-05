@@ -9,6 +9,9 @@
 #define INIT_BAL_C_SLOPE = 1.00;
 #define INIT_BAL_C_INTER = 0.00;
 
+enum ThermistorLocation{MOSFET, Balance, Regulator, PowerSupply};
+
+// Board Configuration Parameters
 struct GlobalCalibrationParams{
     float voltageOffset;            // For general ADC calibration
     float voltageMultiplier;        // Can be calculated from offset or vice-versa
@@ -18,21 +21,50 @@ struct GlobalCalibrationParams{
     float currentMutliplier;
     float cellTempOffset;           // Temp offset for cell temperature sensors in deg C
     float boardTempOffset;          // Temp offset for board temeprature sensors in deg C
-}
+};
 
+// Cell Specific Calibration Parameters
 struct CellCalibrationParams{
-    float voltageOffset;
-    float seriesResistance;
-    float parallelResistance;
-    float parallelCapacitance;
-}
+    float voltageOffset;            // Voltage offset from actual voltage in millivolts
+    float seriesResistance;         // Series resistance for the cell in an RRC model
+    float parallelResistance;       // Parallel resistance for the cell in an RRC model
+    float parallelCapacitance;      // Parallel capacitance for the cell in an RRC model
+};
 
+// Board User Settings
 struct UserSettings{
-    float balancePower;
-    float balanceCurrent;
-    float balanceVoltage;
-    float currentCutOff;
-    float minCellTemp;
-}
+    float balancePower;             // The set balance power the user wants to target in Watts
+    float balanceCurrent;           // The set balance current the user want to target in milliamperes (can be calculated)
+    float balanceVoltage;           // The set voltage the user wants to target for balancing to begin for a cell in volts
+    float currentCutOff;            // The set discharge current the user wants to target for disconnecting the power in amperes
+    float minCellTemp;              // The minimum allowable cell temperature to allow discharge and or balancing in deg C
+};
+
+// Data for a cell
+struct cellData{
+    bool detected;                  // Is this a valid cell - Has it been detected - Allows
+    float cellVoltage;              // Cell's voltage in volts
+    float cellTemperature;          // Cell's temperature in deg C
+    float coulombsIn;               // Cell's charge gone into the cell in C
+    float coulombsOut;              // Cell's charge left the cell in C
+    float coulombsBalanced;         // Cell's charge left due to balancing in C
+    int balanceTally;               // Number of times balancing has been activated on this cell
+    int SOC;                        // Estimated State of Charge for the cell in %
+    struct CellCalibrationParams calibrationParams; // Cell Specific Calibrations
+};
+
+// Data for an on-board thermistor
+struct thermistorData{
+    enum ThermistorLocation location; // Location of the thermistor on the PCB
+    int ADCval;                       // Raw ADC value of the thermistor
+    float degC;                       // Calculated temperature from ADC value in deg C
+};
+
+
+int detectedCells;                  // Number of detected cells by the BMS
+bool balancing[12];                 // Boolean array of which cells are currently being balanced (useful for the GUI)
+
+struct cellData cells[12];          // Array for all the cells and their respective data
+struct thermistorData boardTemps[4];// Array for the temperature sensors on the board
 
 #endif
