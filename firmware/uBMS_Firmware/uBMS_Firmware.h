@@ -74,8 +74,10 @@ bool balancing[12];                   // Boolean array of which cells are curren
 struct cellData cells[12];            // Array for all the cells and their respective data
 struct thermistorData boardTemps[4];  // Array for the temperature sensors on the board
 
+void setupPinouts();
 
 void setMux(enum muxSelect selectedMux, int selectedPin);
+void update7Seg(int number);
 
 float readADCVoltage(enum ADCSelect selectedChannel);
 float calculateCellVoltage(float voltage, int cellNum);
