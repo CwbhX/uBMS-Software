@@ -178,8 +178,14 @@ float calculateDCurrent(float voltage){
 void setup() {
     EXT_R_INF = R_ZERO*exp((-CELL_TEMP_B)/25+KELVIN);
     INT_R_INF = R_ZERO*exp((-BOARD_TEMP_B)/25+KELVIN);
+    detectedCells = 0;
+    balancing = [false, false, false, false, false, false, false, false, false, false, false, false,];
+    sampleCounter = 0;
+    voltageSampleCounter = 0;
+    temperatureSampleCounter = 0;
 
     ads1115.begin();    // Initialise ads1115
+    // TODO: Use Library Supporting different SPS as default Adafruit sets to 128SPS
     mcp8.begin(1);      // Initialise MCP23008 with address 0x21
     mcp17.begin();      // Initialise MCP23017 with address 0x20
     setupPinouts();     // Setup Pinouts of MCPs, etc...
@@ -188,5 +194,7 @@ void setup() {
 
 void loop() {
     // put your main code here, to run repeatedly:
+    
+
 
 }

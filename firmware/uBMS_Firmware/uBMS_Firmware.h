@@ -5,6 +5,7 @@
 #define CELL_TEMP_B = 3950;
 #define BOARD_TEMP_B = 3380;
 #define R_ZERO = 10000;
+#define KELVIN = 273.15;
 
 #define INIT_VOLT_OFFSET = 0.00;
 #define INIT_BAL_C_SLOPE = 1.00;
@@ -78,6 +79,9 @@ const float INT_R_INF;
 
 int detectedCells;                    // Number of detected cells by the BMS
 bool balancing[12];                   // Boolean array of which cells are currently being balanced (useful for the GUI)
+long sampleCounter;
+long voltageSampleCounter;
+long temperatureSampleCounter;
 
 struct cellData cells[12];            // Array for all the cells and their respective data
 struct thermistorData boardTemps[4];  // Array for the temperature sensors on the board
