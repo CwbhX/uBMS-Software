@@ -2,8 +2,9 @@
 #define uBMS_Firmware
 
 #define MAX_BAL_CURRENT = 750;      // In MilliAmperes
-#define CELL_TEMP_B = 1;
-#define BOARD_TEMP_B = 1;
+#define CELL_TEMP_B = 3950;
+#define BOARD_TEMP_B = 3380;
+#define R_ZERO = 10000;
 
 #define INIT_VOLT_OFFSET = 0.00;
 #define INIT_BAL_C_SLOPE = 1.00;
@@ -11,6 +12,7 @@
 
 #define PWM_FREQUENCY = 5000;
 #define PWM_RESOLUTION = 12;
+#define PWM_CHANNEL = 0;
 
 #define MOSFET_T_LOC = 12;
 #define BAL_T_LOC = 13;
@@ -70,6 +72,9 @@ struct thermistorData{
     float degC;                       // Calculated temperature from ADC value in deg C
 };
 
+
+const float EXT_R_INF;
+const float INT_R_INF;
 
 int detectedCells;                    // Number of detected cells by the BMS
 bool balancing[12];                   // Boolean array of which cells are currently being balanced (useful for the GUI)

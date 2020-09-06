@@ -149,15 +149,44 @@ void update7Seg(int number){
     }
 }
 
+float readADCVoltage(enum ADCSelect selectedChannel){
+    int16_t adcVal = ads1115.readADC_SingleEnded(selectedChannel); // Measures the voltage on the respective ADC Channel
+    return (float) (adcVal/32768)*6.144;                           // ADC value / Total steps * max voltage for given PGA setting
+}
+
+float calculateCellVoltage(float voltage, int cellNum){
+    /*
+        NEED TO COMPENSATE FOR NON-PERFECT RESISTORS FOR EACH MEASUREMENT
+    */
+    return voltage;
+}
+
+float calculateCellTemp(float voltage){
+    float R = 22000*((5/voltage) - 1);               // Voltage divider equation solving for R1 with a 22k for R2 - Ripple on the 5v rail might affect readings
+    return (float)(CELL_TEMP_B/log(R/EXT_R_INF));    // Beta Parameter Equation: https://en.wikipedia.org/wiki/Thermistor#B_or_%CE%B2_parameter_equation
+}
+
+float calculateBoardTemp(float voltage){
+    float R = 4700*((5/voltage) - 1);                // Voltage divider equation solving for R1 with a 4.7k for R2
+    return (float)(BOARD_TEMP_B/log(R/INT_R_INF));   // Beta Parameter Equation: https://en.wikipedia.org/wiki/Thermistor#B_or_%CE%B2_parameter_equation
+}
+
+float calculateDCurrent(float voltage){
+    return (float)(((voltage-2.5)/100)/0.001);       // Calculate Current being drain by subtracting offset, dividing out the gain, and then using V=IR to get I
+}
+
 void setup() {
-  ads1115.begin();    // Initialise ads1115
-  mcp8.begin(1);      // Initialise MCP23008 with address 0x21
-  mcp17.begin();      // Initialise MCP23017 with address 0x20
-  setupPinouts();     // Setup Pinouts of MCPs, etc...
-  setupPWM();
+    EXT_R_INF = R_ZERO*exp((-CELL_TEMP_B)/25+KELVIN);
+    INT_R_INF = R_ZERO*exp((-BOARD_TEMP_B)/25+KELVIN);
+
+    ads1115.begin();    // Initialise ads1115
+    mcp8.begin(1);      // Initialise MCP23008 with address 0x21
+    mcp17.begin();      // Initialise MCP23017 with address 0x20
+    setupPinouts();     // Setup Pinouts of MCPs, etc...
+    setupPWM();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+    // put your main code here, to run repeatedly:
 
 }
