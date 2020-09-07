@@ -5,9 +5,10 @@
 #include "Adafruit_MCP23017.h"
 
 
-Adafruit_ADS1115 ads1115(); // With default address of 0x48
+Adafruit_ADS1115 ads1115; // With default address of 0x48
 Adafruit_MCP23008 mcp8;
 Adafruit_MCP23017 mcp17;
+//static TaskHandle_t xTaskToNotify = NULL;
 
 void setupPinouts(){
     int i;
@@ -45,17 +46,16 @@ void setupPWM(){
 
 void setMux(enum muxSelect selectedMux, int selectedPin){
     int i;                         // For for loops
-    uint8_t binBuff[4];
-    itoa(selectedPin, binBuff, 2); // Convert the selected pin (0-15) into a array in base 2
+    itoa(selectedPin, muxBuff, 2); // Convert the selected pin (0-15) into a array in base 2
 
     // Maybe I want to set them all to zero beforehand? or maybe not because I will get data from the zero element then...
-    if(selectedMux == voltage){
+    if(selectedMux == MX_voltage){
         for(i = 0; i < 4; i++){
-            mcp8.digitalWrite(i, binBuff[i]); // Write out the binary coded decimal to the pins for the voltage mux
+            mcp8.digitalWrite(i, muxBuff[i]); // Write out the binary coded decimal to the pins for the voltage mux
         } 
-    }else if(selectedMux == temperature){
+    }else if(selectedMux == MX_temperature){
         for(i = 4; i < 8; i++){
-            mcp8.digitalWrite(i, binBuff[i-4]); // Write out the binary coded decimal to the pins for the temperature mux - notice we set higher pins, but access the same buffer so need to offset for that
+            mcp8.digitalWrite(i, muxBuff[i-4]); // Write out the binary coded decimal to the pins for the temperature mux - notice we set higher pins, but access the same buffer so need to offset for that
         } 
     }
 }
@@ -63,89 +63,91 @@ void setMux(enum muxSelect selectedMux, int selectedPin){
 
 void update7Seg(int number){
     int i;
-    uint8_t binBuff[8];
+    //char segBuff[8]
+    //char binBuff[8]; It crashes with Stack smashing protect failure! if reinitialising
 
-    // 7 Segment segments for given hex value written in dec
-    uint8_t zero  = 252;
-    uint8_t one   = 96;
-    uint8_t two   = 218;
-    uint8_t three = 242;
-    uint8_t four  = 102;
-    uint8_t five  = 182;
-    uint8_t six   = 190;
-    uint8_t seven = 224;
-    uint8_t eight = 254;
-    uint8_t nine  = 114;
-    uint8_t A     = 238;
-    uint8_t B     = 62;
-    uint8_t C     = 156;
-    uint8_t D     = 122;
-    uint8_t E     = 158;
-    uint8_t F     = 142;
-    uint8_t dot   = 1;
+    // This method uses more RAM - but easier to program than storing in a int
+    char zero[8]  = {1, 1, 1, 1, 1, 1, 0, 0};
+    char one[8]   = {0, 1, 1, 0, 0, 0, 0, 0};
+    char two[8]   = {1, 1, 0, 1, 1, 0, 1, 0};
+    char three[8] = {1, 1, 1, 1, 0, 0, 1, 0};
+    char four[8]  = {0, 1, 1, 0, 0, 1, 1, 0};
+    char five[8]  = {1, 0, 1, 1, 0, 1, 1, 0};
+    char six[8]   = {1, 0, 1, 1, 1, 1, 1, 0};
+    char seven[8] = {1, 1, 1, 0, 0, 0, 0, 0};
+    char eight[8] = {1, 1, 1, 1, 1, 1, 1, 0};
+    char nine[8]  = {1, 1, 1, 0, 0, 1, 1, 0};
+    char A[8]     = {1, 1, 1, 0, 1, 1, 1, 0};
+    char B[8]     = {0, 0, 1, 1, 1, 1, 1, 0};
+    char C[8]     = {1, 0, 0, 1, 1, 1, 0, 0};
+    char D[8]     = {0, 1, 1, 1, 1, 0, 1, 0};
+    char E[8]     = {1, 0, 0, 1, 1, 1, 1, 0};
+    char F[8]     = {1, 0, 0, 0, 1, 1, 1, 0};
+    char dot[8]   = {0, 0, 0, 0, 0, 0, 0, 1};
+    char all[8]   = {1, 1, 1, 1, 1, 1, 1, 1};
 
     // Set the binBuff to the correct output for the 7 segment display to then write to the display
     switch(number){
         case 0:
-            itoa(zero, binBuff, 2);
+            memcpy(segBuff, zero, sizeof(segBuff));
             break;
         case 1:
-            itoa(one, binBuff, 2);
+            memcpy(segBuff, one, sizeof(segBuff));
             break;
         case 2:
-            itoa(two, binBuff, 2);
+            memcpy(segBuff, two, sizeof(segBuff));
             break;
         case 3:
-            itoa(three, binBuff, 2);
+            memcpy(segBuff, three, sizeof(segBuff));
             break;
         case 4:
-            itoa(four, binBuff, 2);
+            memcpy(segBuff, four, sizeof(segBuff));
             break;
         case 5:
-            itoa(five, binBuff, 2);
+            memcpy(segBuff, five, sizeof(segBuff));
             break;
         case 6:
-            itoa(six, binBuff, 2);
+            memcpy(segBuff, six, sizeof(segBuff));
             break;
         case 7:
-            itoa(seven, binBuff, 2);
+            memcpy(segBuff, seven, sizeof(segBuff));
             break;
         case 8:
-            itoa(eight, binBuff, 2);
+            memcpy(segBuff, eight, sizeof(segBuff));
             break;
         case 9:
-            itoa(nine, binBuff, 2);
+            memcpy(segBuff, nine, sizeof(segBuff));
             break;
         case 10:
-            itoa(A, binBuff, 2);
+            memcpy(segBuff, A, sizeof(segBuff));
             break;
         case 11:
-            itoa(B, binBuff, 2);
+            memcpy(segBuff, B, sizeof(segBuff));
             break;
         case 12:
-            itoa(C, binBuff, 2);
+            memcpy(segBuff, C, sizeof(segBuff));
             break;
         case 13:
-            itoa(D, binBuff, 2);
+            memcpy(segBuff, D, sizeof(segBuff));
             break;
         case 14:
-            itoa(E, binBuff, 2);
+            memcpy(segBuff, E, sizeof(segBuff));
             break;
         case 15:
-            itoa(F, binBuff, 2);
+            memcpy(segBuff, F, sizeof(segBuff));
             break;
         case 16:
-            itoa(dot, binBuff, 2);
+            memcpy(segBuff, dot, sizeof(segBuff));
             break;
 
         default:
-            itoa(255, binBuff, 2);
+            memcpy(segBuff, all, sizeof(segBuff));
             Serial.println("Error reading value for 7 seg");
     }
 
     // Write the digital outputs to the seven segment display
     for(i = 0; i < 8; i++){
-        mcp17.digitalWrite(i, binBuff[i]);
+        mcp17.digitalWrite(i, segBuff[i]);
     }
 }
 
@@ -176,10 +178,11 @@ float calculateDCurrent(float voltage){
 }
 
 void setup() {
+    Serial.begin(115200);
+
     EXT_R_INF = R_ZERO*exp((-CELL_TEMP_B)/25+KELVIN);
     INT_R_INF = R_ZERO*exp((-BOARD_TEMP_B)/25+KELVIN);
     detectedCells = 0;
-    balancing = [false, false, false, false, false, false, false, false, false, false, false, false,];
     sampleCounter = 0;
     voltageSampleCounter = 0;
     temperatureSampleCounter = 0;
@@ -190,11 +193,20 @@ void setup() {
     mcp17.begin();      // Initialise MCP23017 with address 0x20
     setupPinouts();     // Setup Pinouts of MCPs, etc...
     setupPWM();
+
+    //configASSERT( xTaskToNotify == NULL );
+    //xTaskToNotify = xTaskGetCurrentTaskHandle();
 }
 
+
+uint8_t testZero  = 252;
+
 void loop() {
-    // put your main code here, to run repeatedly:
-    
 
+    for(int num = 0; num < 18; num++){
+        update7Seg(num);
+        delay(500);
+    }
 
+    delay(1000);
 }

@@ -1,28 +1,28 @@
 #ifndef uBMS_Firmware
 #define uBMS_Firmware
 
-#define MAX_BAL_CURRENT = 750;      // In MilliAmperes
-#define CELL_TEMP_B = 3950;
-#define BOARD_TEMP_B = 3380;
-#define R_ZERO = 10000;
-#define KELVIN = 273.15;
+#define MAX_BAL_CURRENT 750      // In MilliAmperes
+#define CELL_TEMP_B 3950
+#define BOARD_TEMP_B 3380
+#define R_ZERO 10000
+#define KELVIN 273.15
 
-#define INIT_VOLT_OFFSET = 0.00;
-#define INIT_BAL_C_SLOPE = 1.00;
-#define INIT_BAL_C_INTER = 0.00;
+#define INIT_VOLT_OFFSET 0.00
+#define INIT_BAL_C_SLOPE 1.00
+#define INIT_BAL_C_INTER 0.00
 
-#define PWM_FREQUENCY = 5000;
-#define PWM_RESOLUTION = 12;
-#define PWM_CHANNEL = 0;
+#define PWM_FREQUENCY 5000
+#define PWM_RESOLUTION 12
+#define PWM_CHANNEL 0
 
-#define MOSFET_T_LOC = 12;
-#define BAL_T_LOC = 13;
-#define POWER_T_LOC = 14;
-#define REG_T_LOC = 15;
+#define MOSFET_T_LOC 12
+#define BAL_T_LOC 13
+#define POWER_T_LOC 14
+#define REG_T_LOC 15
 
 enum ThermistorLocation{MOSFET, Balance, Regulator, PowerSupply};
-enum muxSelect{voltage, temperature};
-enum ADCSelect{voltage, temperature, current, external};
+enum muxSelect{MX_voltage, MX_temperature};
+enum ADCSelect{AD_voltage, AD_temperature, AD_current, AD_external};
 
 // Board Configuration Parameters
 struct GlobalCalibrationParams{
@@ -74,14 +74,16 @@ struct thermistorData{
 };
 
 
-const float EXT_R_INF;
-const float INT_R_INF;
+float EXT_R_INF;
+float INT_R_INF;
 
 int detectedCells;                    // Number of detected cells by the BMS
 bool balancing[12];                   // Boolean array of which cells are currently being balanced (useful for the GUI)
 long sampleCounter;
 long voltageSampleCounter;
 long temperatureSampleCounter;
+char muxBuff[4];
+char segBuff[8];
 
 struct cellData cells[12];            // Array for all the cells and their respective data
 struct thermistorData boardTemps[4];  // Array for the temperature sensors on the board
