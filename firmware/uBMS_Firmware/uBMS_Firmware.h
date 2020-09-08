@@ -1,6 +1,8 @@
 #ifndef uBMS_Firmware
 #define uBMS_Firmware
 
+#include <Vector.h>
+
 #define MAX_BAL_CURRENT 750      // In MilliAmperes
 #define CELL_TEMP_B 3950
 #define BOARD_TEMP_B 3380
@@ -73,6 +75,11 @@ struct thermistorData{
     float degC;                       // Calculated temperature from ADC value in deg C
 };
 
+struct charArrayWithLen{
+    int* array;
+    int len;
+};
+
 
 float EXT_R_INF;
 float INT_R_INF;
@@ -88,11 +95,16 @@ char segBuff[8];
 struct cellData cells[12];            // Array for all the cells and their respective data
 struct thermistorData boardTemps[4];  // Array for the temperature sensors on the board
 
+int getNumDigits(int num);
+struct charArrayWithLen convertIntegerToArray(int num);    // Source from https://www.geeksforgeeks.org/how-to-convert-given-number-to-a-character-array/
+struct charArrayWithLen IPToDigits(int IPArray[4]);
+
 void setupPinouts();
 void setupPWM();
 
 void setMux(enum muxSelect selectedMux, int selectedPin);
 void update7Seg(int number);
+void displayIP(struct charArrayWithLen IPArray, int delayTime);
 
 float readADCVoltage(enum ADCSelect selectedChannel);
 float calculateCellVoltage(float voltage, int cellNum);

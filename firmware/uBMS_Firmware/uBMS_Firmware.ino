@@ -1,5 +1,9 @@
 #include "uBMS_Firmware.h"
+#include "creds.h"
 #include <Wire.h>
+#include <WiFi.h>
+#include <Vector.h>
+
 #include <Adafruit_ADS1015.h>
 #include "Adafruit_MCP23008.h"
 #include "Adafruit_MCP23017.h"
@@ -9,6 +13,94 @@ Adafruit_ADS1115 ads1115; // With default address of 0x48
 Adafruit_MCP23008 mcp8;
 Adafruit_MCP23017 mcp17;
 //static TaskHandle_t xTaskToNotify = NULL;
+
+
+int getNumDigits(int num){
+    int count = 0;
+    
+    do{
+        count++;     // Increment digit count
+        num /= 10;   // Remove last digit of 'num'
+    } while(num != 0);
+    
+    return count;
+}
+
+struct charArrayWithLen convertIntegerToArray(int num){ 
+    struct charArrayWithLen arrl;
+
+    // Count digits in number N 
+    int m = num; 
+    arrl.len = 0;
+
+    while (m) { 
+  
+        // Increment number of digits 
+        arrl.len++; 
+  
+        // Truncate the last 
+        // digit from the number 
+        m /= 10; 
+    } 
+  
+    // Declare char array for result 
+    char* arr; 
+  
+    // Declare duplicate char array 
+    int arr1[arrl.len]; 
+  
+    // Memory allocaton of array 
+    arrl.array = (int*)malloc(arrl.len*sizeof(int)); 
+  
+    // Separating integer into digits and 
+    // accomodate it to character array 
+    int index = 0; 
+    while (num) { 
+  
+        // Separate last digit from 
+        // the number and add ASCII 
+        // value of character '0' is 48 
+        arr1[++index] = num % 10; 
+  
+        // Truncate the last 
+        // digit from the number 
+        num /= 10; 
+    } 
+  
+    // Reverse the array for result 
+    int i; 
+    for (i = 0; i < index; i++) { 
+        arrl.array[i] = arr1[index - i]; 
+    } 
+  
+    // Return char array 
+    return arrl; 
+} 
+
+int storageArray[16];
+
+struct charArrayWithLen IPToDigits(int IPArray[4]){
+    struct charArrayWithLen arrl;
+    arrl.array = (int*)malloc(16*sizeof(int));
+    arrl.len = 0;
+
+    for(int i = 0; i < 4; i++){
+        int num = IPArray[i];
+        int numDigits = getNumDigits(num);
+        struct charArrayWithLen numIntArray = convertIntegerToArray(num);
+
+        for(int ii = 0; ii < numIntArray.len; ii++){
+            arrl.array[arrl.len] = numIntArray.array[ii];
+            arrl.len++;
+        }
+        
+        arrl.array[arrl.len] = 16;
+        arrl.len++;
+    }
+    
+    return arrl;
+}
+
 
 void setupPinouts(){
     int i;
@@ -48,6 +140,8 @@ void setMux(enum muxSelect selectedMux, int selectedPin){
     int i;                         // For for loops
     itoa(selectedPin, muxBuff, 2); // Convert the selected pin (0-15) into a array in base 2
 
+    // TODO: Check to make sure this selects correctly... might need to fiddle with the padding of the array with zeros
+
     // Maybe I want to set them all to zero beforehand? or maybe not because I will get data from the zero element then...
     if(selectedMux == MX_voltage){
         for(i = 0; i < 4; i++){
@@ -59,7 +153,6 @@ void setMux(enum muxSelect selectedMux, int selectedPin){
         } 
     }
 }
-
 
 void update7Seg(int number){
     int i;
@@ -151,6 +244,13 @@ void update7Seg(int number){
     }
 }
 
+void displayIP(struct charArrayWithLen IPArray, int delayTime){
+    for(int i = 0; i < IPArray.len; i++){
+        update7Seg(IPArray.array[i]);
+        delay(delayTime);
+    }
+}
+
 float readADCVoltage(enum ADCSelect selectedChannel){
     int16_t adcVal = ads1115.readADC_SingleEnded(selectedChannel); // Measures the voltage on the respective ADC Channel
     return (float) (adcVal/32768)*6.144;                           // ADC value / Total steps * max voltage for given PGA setting
@@ -196,17 +296,41 @@ void setup() {
 
     //configASSERT( xTaskToNotify == NULL );
     //xTaskToNotify = xTaskGetCurrentTaskHandle();
+
+    WiFi.begin(ssid, password);             // Connect to the network
+    Serial.print("Connecting to ");
+    Serial.print(ssid);
+    
+    while (WiFi.status() != WL_CONNECTED) { // Wait for the Wi-Fi to connect
+        delay(500);
+        Serial.print('.');
+    }
+ 
+    Serial.println('\n');
+    Serial.println("Connection established!");  
+    Serial.print("IP address:\t");
+    Serial.println(WiFi.localIP());
 }
 
 
-uint8_t testZero  = 252;
-
 void loop() {
+    int IP[4];
+    IPAddress IPADDR = WiFi.localIP();
+    IP[0] = IPADDR[0];
+    IP[1] = IPADDR[1];
+    IP[2] = IPADDR[2];
+    IP[3] = IPADDR[3];
 
-    for(int num = 0; num < 18; num++){
-        update7Seg(num);
-        delay(500);
-    }
+    Serial.println("Setup IP variables...");
+    Serial.print(IP[0]);
+    Serial.print(".");
+    Serial.print(IP[1]);
+    Serial.print(".");
+    Serial.print(IP[2]);
+    Serial.print(".");
+    Serial.println(IP[3]);
+
+    displayIP(IPToDigits(IP), 1000);
 
     delay(1000);
 }
