@@ -277,6 +277,20 @@ float calculateDCurrent(float voltage){
     return (float)(((voltage-2.5)/100)/0.001);       // Calculate Current being drain by subtracting offset, dividing out the gain, and then using V=IR to get I
 }
 
+
+volatile int interruptCounter;
+int totalInterruptCounter;
+ 
+hw_timer_t * timer = NULL;
+portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
+ 
+void IRAM_ATTR onTimer() {
+  portENTER_CRITICAL_ISR(&timerMux);
+  interruptCounter++;
+  portEXIT_CRITICAL_ISR(&timerMux);
+ 
+}
+
 void setup() {
     Serial.begin(115200);
 
@@ -288,6 +302,7 @@ void setup() {
     temperatureSampleCounter = 0;
 
     ads1115.begin();    // Initialise ads1115
+    ads1115.setSPS(ADS1115_DR_475SPS); // Set sampling rate to 475 SPS
     // TODO: Use Library Supporting different SPS as default Adafruit sets to 128SPS
     mcp8.begin(1);      // Initialise MCP23008 with address 0x21
     mcp17.begin();      // Initialise MCP23017 with address 0x20
@@ -310,27 +325,39 @@ void setup() {
     Serial.println("Connection established!");  
     Serial.print("IP address:\t");
     Serial.println(WiFi.localIP());
+
+    timer = timerBegin(0, 80, true);
+    timerAttachInterrupt(timer, &onTimer, true);
+    timerAlarmWrite(timer, 1000000, true);
+    timerAlarmEnable(timer);
 }
 
+long previousTime = 0;
 
 void loop() {
-    int IP[4];
-    IPAddress IPADDR = WiFi.localIP();
-    IP[0] = IPADDR[0];
-    IP[1] = IPADDR[1];
-    IP[2] = IPADDR[2];
-    IP[3] = IPADDR[3];
+    // int IP[4];
+    // IPAddress IPADDR = WiFi.localIP();
+    // IP[0] = IPADDR[0];
+    // IP[1] = IPADDR[1];
+    // IP[2] = IPADDR[2];
+    // IP[3] = IPADDR[3];
 
-    Serial.println("Setup IP variables...");
-    Serial.print(IP[0]);
-    Serial.print(".");
-    Serial.print(IP[1]);
-    Serial.print(".");
-    Serial.print(IP[2]);
-    Serial.print(".");
-    Serial.println(IP[3]);
+    //displayIP(IPToDigits(IP), 1000);
 
-    displayIP(IPToDigits(IP), 1000);
+    if (interruptCounter > 0) {
+        portENTER_CRITICAL(&timerMux);
+        interruptCounter--;
+        portEXIT_CRITICAL(&timerMux);
+    
+        totalInterruptCounter++;
+    
+        Serial.print("An interrupt as occurred. Total number: ");
+        Serial.println(totalInterruptCounter);
+        Serial.print("Time since last interrupt: ");
+        Serial.println(micros()- previousTime);
+        Serial.println();
+        previousTime = micros();
+    }
 
-    delay(1000);
+    delay(10);
 }

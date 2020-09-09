@@ -86,9 +86,9 @@ float INT_R_INF;
 
 int detectedCells;                    // Number of detected cells by the BMS
 bool balancing[12];                   // Boolean array of which cells are currently being balanced (useful for the GUI)
-long sampleCounter;
-long voltageSampleCounter;
-long temperatureSampleCounter;
+unsigned long sampleCounter;                   // At sample rate fo 2.1ms should not loop over 104 days
+unsigned long voltageSampleCounter;
+unsigned long temperatureSampleCounter;
 char muxBuff[4];
 char segBuff[8];
 
