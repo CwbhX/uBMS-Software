@@ -2,11 +2,12 @@
 #include "creds.h"
 #include <Wire.h>
 #include <WiFi.h>
-#include <Vector.h>
 
 #include <Adafruit_ADS1015.h>
 #include "Adafruit_MCP23008.h"
 #include "Adafruit_MCP23017.h"
+#include <WebSocketsServer.h>
+#include <cppQueue.h>
 
 
 Adafruit_ADS1115 ads1115; // With default address of 0x48
@@ -77,8 +78,6 @@ struct charArrayWithLen convertIntegerToArray(int num){
     return arrl; 
 } 
 
-int storageArray[16];
-
 struct charArrayWithLen IPToDigits(int IPArray[4]){
     struct charArrayWithLen arrl;
     arrl.array = (int*)malloc(16*sizeof(int));
@@ -100,7 +99,6 @@ struct charArrayWithLen IPToDigits(int IPArray[4]){
     
     return arrl;
 }
-
 
 void setupPinouts(){
     int i;
@@ -283,7 +281,7 @@ int totalInterruptCounter;
  
 hw_timer_t * timer = NULL;
 portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
- 
+
 void IRAM_ATTR onTimer() {
   portENTER_CRITICAL_ISR(&timerMux);
   interruptCounter++;
@@ -309,8 +307,6 @@ void setup() {
     setupPinouts();     // Setup Pinouts of MCPs, etc...
     setupPWM();
 
-    //configASSERT( xTaskToNotify == NULL );
-    //xTaskToNotify = xTaskGetCurrentTaskHandle();
 
     WiFi.begin(ssid, password);             // Connect to the network
     Serial.print("Connecting to ");
@@ -335,29 +331,29 @@ void setup() {
 long previousTime = 0;
 
 void loop() {
-    // int IP[4];
-    // IPAddress IPADDR = WiFi.localIP();
-    // IP[0] = IPADDR[0];
-    // IP[1] = IPADDR[1];
-    // IP[2] = IPADDR[2];
-    // IP[3] = IPADDR[3];
+    int IP[4];
+    IPAddress IPADDR = WiFi.localIP();
+    IP[0] = IPADDR[0];
+    IP[1] = IPADDR[1];
+    IP[2] = IPADDR[2];
+    IP[3] = IPADDR[3];
 
-    //displayIP(IPToDigits(IP), 1000);
+    displayIP(IPToDigits(IP), 1000);
 
-    if (interruptCounter > 0) {
-        portENTER_CRITICAL(&timerMux);
-        interruptCounter--;
-        portEXIT_CRITICAL(&timerMux);
+    // if (interruptCounter > 0) {
+    //     portENTER_CRITICAL(&timerMux);
+    //     interruptCounter--;
+    //     portEXIT_CRITICAL(&timerMux);
     
-        totalInterruptCounter++;
+    //     totalInterruptCounter++;
     
-        Serial.print("An interrupt as occurred. Total number: ");
-        Serial.println(totalInterruptCounter);
-        Serial.print("Time since last interrupt: ");
-        Serial.println(micros()- previousTime);
-        Serial.println();
-        previousTime = micros();
-    }
+    //     Serial.print("An interrupt as occurred. Total number: ");
+    //     Serial.println(totalInterruptCounter);
+    //     Serial.print("Time since last interrupt: ");
+    //     Serial.println(micros()- previousTime);
+    //     Serial.println();
+    //     previousTime = micros();
+    // }
 
     delay(10);
 }
